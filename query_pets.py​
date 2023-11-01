@@ -1,33 +1,32 @@
 import sqlite3
 
-def query_pets():
-    conn = sqlite3.connect('pets.db')
-    cursor = conn.cursor()
+def query_data():
+    connection = sqlite3.connect('pets.db')
+    cursor = connection.cursor()
 
     while True:
-        person_id = input("Enter a person's ID number (or '1' to exit): ")
+        person_id = input("Please enter a person's ID number (or enter '1' to exit): ")
         if person_id == '1':
             break
 
-        cursor.execute('SELECT first_name, last_name, age FROM person WHERE id=?', (person_id,))
+        cursor.execute('SELECT * FROM person WHERE id=?', (person_id,))
         person = cursor.fetchone()
 
         if person:
-            print(f"{person[0]} {person[1]}, {person[2]} years old")
-            
-            cursor.execute('''
-                SELECT pet.name, pet.breed, pet.age
-                FROM pet
-                JOIN person_pet ON pet.id = person_pet.pet_id
-                WHERE person_pet.person_id=?
-            ''', (person_id,))
-            
-            pets = cursor.fetchall()
-            for pet in pets:
-                print(f"{person[0]} {person[1]} owned {pet[0]}, a {pet[1]}, that was {pet[2]} years old")
+            print(f'{person[1]} {person[2]}, {person[3]} years old')
+            cursor.execute('SELECT * FROM person_pet WHERE person_id=?', (person_id,))
+            person_pets = cursor.fetchall()
+
+            for person_pet in person_pets:
+                cursor.execute('SELECT * FROM pet WHERE id=?', (person_pet[1],))
+                pet = cursor.fetchone()
+                if pet:
+                    status = 'dead' if pet[4] == 1 else 'alive'
+                    print(f'{person[1]} {person[2]} owned {pet[1]}, a {pet[2]}, that was {pet[3]} years old ({status})')
         else:
             print("Error: Person not found.")
 
-    conn.close()
+    connection.close()
 
-query_pets()
+if __name__ == '__main__':
+    query_data()
